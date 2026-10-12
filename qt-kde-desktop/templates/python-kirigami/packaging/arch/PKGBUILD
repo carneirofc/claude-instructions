@@ -1,0 +1,98 @@
+# Maintainer: Your Name <you@example.org>
+#
+# A Kirigami app on the system Python and the distribution's Qt. Builds the committed HEAD
+# of $PKG_SOURCE: scripts/package.sh sets it to this checkout and runs makepkg on a copy of
+# this directory; a plain `makepkg` builds the upstream repository.
+#
+#   scripts/package.sh -si                     build this checkout and install it
+#   scripts/package.sh --srcinfo               regenerate .SRCINFO after editing this file
+
+pkgname=myapp-git
+_name=myapp
+_id=io.github.example.myapp
+pkgver=0.1.0.r0.g0000000
+pkgrel=1
+pkgdesc='Browse image folders with a native KDE look'
+arch=('any')
+url='https://example.org/myapp'
+license=('MIT')
+depends=(
+  'python'
+  # pyproject dependencies, mapped to Arch names (check each: pacman -Ss '^python-<name>$')
+  'python-pillow'
+  'python-platformdirs'
+  # The UI: everything the QML imports, built against the same Qt as pyside6. Never PyPI's
+  # PySide6: it bundles its own Qt, which cannot load these QML plugins.
+  'pyside6'
+  'qt6-declarative'           # QtQuick, QtQuick.Dialogs
+  'kirigami'
+  'kirigami-addons'           # FormCard pages, About page
+  'qqc2-desktop-style'        # org.kde.desktop: controls drawn by the user's QStyle
+  'breeze-icons'              # the fallback icon theme
+  'hicolor-icon-theme'        # owns /usr/share/icons/hicolor
+  'qt6-svg'                   # SVG icons
+  'qt6-imageformats'          # WebP thumbnails
+  'qt6-wayland'
+  'kcoreaddons'               # KAboutData (+ its Python binding)
+  'knotifications'            # desktop notifications (+ its Python binding)
+)
+optdepends=(
+  'plasma-integration: Plasma colours, fonts, icons and file dialogs, also outside Plasma'
+  'xdg-desktop-portal-kde: native file dialogs and "open with" through the portal'
+  'file: the default "Run Command"'
+)
+makedepends=('git' 'gettext' 'python-build' 'python-installer' 'python-hatchling' 'python-wheel')
+checkdepends=('python-pytest' 'python-pytest-qt' 'desktop-file-utils' 'appstream')
+provides=("$_name")
+conflicts=("$_name")
+source=("$_name::git+${PKG_SOURCE:-https://example.org/myapp.git}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$_name"
+  # Release tags (v1.2.3) when there are any, else the pyproject version: 0.1.0.r42.gabc1234.
+  local described
+  if described=$(git describe --tags --long --match 'v[0-9]*' --abbrev=7 2>/dev/null); then
+    printf '%s' "$described" | sed 's/^v//;s/\([^-]*-\)g/r\1g/;s/-/./g'
+  else
+    printf '%s.r%s.g%s' "$(grep -Po '^version = "\K[^"]+' pyproject.toml)" \
+      "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  fi
+}
+
+build() {
+  cd "$_name"
+  python -m build --wheel --no-isolation
+  scripts/i18n.sh compile "$srcdir/locale" >/dev/null
+}
+
+check() {
+  cd "$_name"
+  desktop-file-validate "packaging/arch/$_id.desktop"
+  appstreamcli validate --no-net "packaging/arch/$_id.metainfo.xml"
+  # The wheel must carry what the app loads at runtime.
+  local listing
+  listing=$(python -m zipfile -l dist/*.whl)
+  grep -q "$_name/qml/Main.qml" <<<"$listing"
+  grep -q "$_name/data/knotifications6/$_name.notifyrc" <<<"$listing"
+  # The suite, against the installed wheel rather than the source tree, headless.
+  local site
+  site=$(python -c 'import site; print(site.getsitepackages()[0])')
+  rm -rf "$srcdir/test-env"
+  python -m installer --destdir="$srcdir/test-env" dist/*.whl
+  QT_QPA_PLATFORM=offscreen PYTHONPATH="$srcdir/test-env$site" \
+    python -m pytest -q -p no:cacheprovider tests
+}
+
+package() {
+  cd "$_name"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 "packaging/arch/$_id.desktop" -t "$pkgdir/usr/share/applications"
+  install -Dm644 "packaging/arch/$_id.metainfo.xml" -t "$pkgdir/usr/share/metainfo"
+  install -Dm644 "src/$_name/data/icons/$_id.svg" -t "$pkgdir/usr/share/icons/hicolor/scalable/apps"
+  install -Dm644 "src/$_name/data/knotifications6/$_name.notifyrc" -t "$pkgdir/usr/share/knotifications6"
+  cp -r "$srcdir/locale" "$pkgdir/usr/share/"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  # No .install scriptlet: pacman's own hooks refresh the icon cache, the desktop database
+  # and the AppStream cache when files land in those directories.
+}

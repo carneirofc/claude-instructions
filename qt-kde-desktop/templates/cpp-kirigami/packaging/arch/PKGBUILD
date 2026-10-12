@@ -1,0 +1,58 @@
+# Maintainer: Your Name <you@example.org>
+#
+# A Kirigami app in C++ (Qt 6 + KF6, CMake/ECM). Same layout and script contract as the
+# Python template: scripts/package.sh builds the committed HEAD of this checkout.
+# NOTE: reference recipe, not build-tested in the session that wrote it.
+
+pkgname=myapp-git
+_name=myapp
+pkgver=0.1.0.r0.g0000000
+pkgrel=1
+pkgdesc='Browse image folders with a native KDE look'
+arch=('x86_64')
+url='https://example.org/myapp'
+license=('MIT')
+# Link-time libraries (namcap reports missing/extra ones) plus runtime-only QML modules.
+depends=(
+  'gcc-libs' 'glibc'
+  'qt6-base' 'qt6-declarative' 'qt6-imageformats' 'qt6-svg' 'qt6-wayland'
+  'kirigami' 'kirigami-addons' 'qqc2-desktop-style'
+  'kcoreaddons' 'ki18n' 'kconfig' 'kiconthemes' 'knotifications' 'kdbusaddons' 'kio'
+  'breeze-icons' 'hicolor-icon-theme'
+)
+makedepends=('git' 'cmake' 'ninja' 'extra-cmake-modules' 'qt6-tools')
+checkdepends=('desktop-file-utils' 'appstream')
+optdepends=('plasma-integration: Plasma colours, fonts, icons and file dialogs, also outside Plasma')
+provides=("$_name")
+conflicts=("$_name")
+source=("$_name::git+${PKG_SOURCE:-https://example.org/myapp.git}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$_name"
+  local described
+  if described=$(git describe --tags --long --match 'v[0-9]*' --abbrev=7 2>/dev/null); then
+    printf '%s' "$described" | sed 's/^v//;s/\([^-]*-\)g/r\1g/;s/-/./g'
+  else
+    printf '%s.r%s.g%s' "$(sed -n 's/^project(.* VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)" \
+      "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  fi
+}
+
+build() {
+  cmake -B build -S "$_name" -G Ninja \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DBUILD_TESTING=OFF
+  cmake --build build
+}
+
+check() {
+  desktop-file-validate "$_name/data/io.github.example.myapp.desktop"
+  appstreamcli validate --no-net "$_name/data/io.github.example.myapp.metainfo.xml"
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 "$_name/LICENSE" -t "$pkgdir/usr/share/licenses/$pkgname"
+}

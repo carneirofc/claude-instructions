@@ -1,0 +1,44 @@
+[project]
+name = "myapp"
+version = "0.1.0"
+description = "A KDE-native Kirigami desktop app (reference template)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+# Nothing from PyPI for the UI: PySide6, Kirigami, kirigami-addons, qqc2-desktop-style and
+# the KF6 Python bindings come from the distribution (pacman). A PyPI PySide6 bundles its
+# own Qt, which cannot load the system's Kirigami QML plugins. Put non-Qt runtime
+# dependencies here, and map each one to its Arch package in packaging/arch/PKGBUILD.
+dependencies = [
+    "pillow>=10",        # python-pillow: thumbnails (decode anything, encode WebP)
+    "platformdirs>=4",   # python-platformdirs: XDG config/state/cache/data dirs
+]
+
+[project.scripts]
+myapp = "myapp.app:main"
+
+[dependency-groups]
+# pytest-qt does not pull PySide6 in; it uses whichever binding is importable.
+dev = ["pytest>=8", "pytest-qt>=4.4", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Everything under the package ships in the wheel: the qml/ tree and data/ included.
+packages = ["src/myapp"]
+
+[tool.pytest.ini_options]
+qt_api = "pyside6"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Qt overrides (rowCount, roleNames) and QML-facing names (iconName) are camelCase.
+"src/myapp/qt/**" = ["N802", "N815"]

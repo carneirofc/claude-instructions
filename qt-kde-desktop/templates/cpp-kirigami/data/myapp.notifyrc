@@ -1,0 +1,18 @@
+# Desktop notification events. The file name is the component name (APP_NAME); each
+# [Event/<id>] is an id passed to KNotification(...). The user configures them in
+# System Settings > Notifications > Applications > My App.
+[Global]
+IconName=io.github.example.myapp
+Comment=My App
+DesktopEntry=io.github.example.myapp
+
+[Event/thumbnailsReady]
+Name=Thumbnails ready
+Comment=Thumbnails finished preparing while the window was in the background
+Action=Popup
+
+[Event/taskFailed]
+Name=Task failed
+Comment=A long task failed
+Action=Popup
+Urgency=High

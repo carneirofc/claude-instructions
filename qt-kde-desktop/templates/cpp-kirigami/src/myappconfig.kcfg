@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- KConfigXT: generates the typed Config class (Config::self()->thumbnailSize(), ...),
+     QML-visible through QML_REGISTRATION. Stored in ~/.config/myapprc, the same file and
+     keys the Python template writes, so both builds share settings. -->
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name="myapprc"/>
+  <group name="General">
+    <entry name="thumbnailSize" key="thumbnail_size" type="Int">
+      <default>160</default>
+      <min>64</min>
+      <max>512</max>
+    </entry>
+    <entry name="cacheMegabytes" key="cache_megabytes" type="Int">
+      <default>256</default>
+      <min>16</min>
+      <max>8192</max>
+    </entry>
+    <entry name="command" key="command" type="String">
+      <default>file --brief</default>
+    </entry>
+    <entry name="showHidden" key="show_hidden" type="Bool">
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>

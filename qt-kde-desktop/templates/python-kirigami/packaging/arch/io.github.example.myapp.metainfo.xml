@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream: what Discover and other software centers show. Validated by
+     appstreamcli in the PKGBUILD check(). No double hyphen in XML comments. -->
+<component type="desktop-application">
+  <id>io.github.example.myapp</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>My App</name>
+  <name xml:lang="pt-BR">Meu App</name>
+  <summary>Browse image folders with a native look</summary>
+  <summary xml:lang="pt-BR">Navegue por pastas de imagens com visual nativo</summary>
+  <description>
+    <p>
+      A fast image folder browser that follows your desktop: colours, fonts, icons and
+      file dialogs come from your Plasma settings.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.example.myapp.desktop</launchable>
+  <developer id="org.example">
+    <name>Your Name</name>
+  </developer>
+  <url type="homepage">https://example.org/myapp</url>
+  <url type="bugtracker">https://example.org/myapp/issues</url>
+  <provides>
+    <binary>myapp</binary>
+  </provides>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-10-12"/>
+  </releases>
+</component>

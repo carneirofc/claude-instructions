@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=My App
+Name[pt_BR]=Meu App
+GenericName=Image Browser
+GenericName[pt_BR]=Navegador de imagens
+Comment=Browse image folders with a native look
+Comment[pt_BR]=Navegue por pastas de imagens com visual nativo
+# The file name, Icon=, StartupWMClass and QGuiApplication.desktopFileName are one id:
+# that is how Plasma and the portal match the window to this entry (taskbar icon, pinning).
+Exec=myapp %f
+TryExec=myapp
+Icon=io.github.example.myapp
+Terminal=false
+StartupNotify=true
+StartupWMClass=io.github.example.myapp
+Categories=Qt;KDE;Graphics;Viewer;
+MimeType=inode/directory;
+Keywords=image;photo;thumbnail;folder;
+Keywords[pt_BR]=imagem;foto;miniatura;pasta;
